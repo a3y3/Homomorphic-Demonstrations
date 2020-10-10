@@ -41,7 +41,8 @@ set(SOURCE_FILES
         Encryptor.cpp
         FileSystem.cpp
         Util.cpp
-        BasicExamples.cpp)
+        BasicExamples.cpp
+        Calculator.cpp)
 
 set_source_files_properties(${SOURCE_FILES} PROPERTIES LANGUAGE CXX)
 

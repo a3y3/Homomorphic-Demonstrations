@@ -6,13 +6,15 @@
 
 #include <iostream>
 #include "BasicExamples.h"
+#include "Calculator.h"
 
 int main() {
-    std::cout << "Program Start!!!" << std::endl;
+    std::cout << "Demonstration 1: Homomorphic Calculator" << std::endl;
+    Calculator::run_calculator();
 
     //BasicExamples::determine_plaintext_slot();
 
-    BasicExamples::decimal_arithmetic_example();
+    //BasicExamples::decimal_arithmetic_example();
 
     //BasicExamples::packed_binary_arithmetic_example();
 
