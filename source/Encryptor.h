@@ -22,7 +22,7 @@ namespace COED {
 
         void testEncryption();
 
-        static void fill_plaintext(helib::Ptxt <helib::BGV> &, const std::vector<bool> &);
+        static void fill_plaintext(helib::Ptxt<helib::BGV> &, const std::vector<bool> &);
 
         helib::Context *getContext() const;
 

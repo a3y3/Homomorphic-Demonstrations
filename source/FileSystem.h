@@ -15,12 +15,19 @@ namespace COED {
         FileSystem(const std::string &);
 
         void open_output_stream();
+
         void open_output_stream(const std::ios_base::openmode &);
+
         std::ofstream &get_output_stream();
+
         void close_output_stream();
+
         void open_input_stream();
+
         void open_input_stream(const std::ios_base::openmode &);
+
         std::ifstream &get_input_stream();
+
         void close_input_stream();
 
     private:

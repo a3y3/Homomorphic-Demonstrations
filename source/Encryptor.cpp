@@ -10,8 +10,11 @@
 #include "FileSystem.h"
 #include "assert.h"
 
-COED::Encryptor::Encryptor(const std::string &secret_key_file_path, const std::string &public_key_file_path, long plaintextModulus, long phiM, long lifting, long numOfBitsOfModulusChain, long numOfColOfKeySwitchingMatrix)
-        : plaintextModulus(plaintextModulus), phiM(phiM), lifting(lifting), numOfBitsOfModulusChain(numOfBitsOfModulusChain),
+COED::Encryptor::Encryptor(const std::string &secret_key_file_path, const std::string &public_key_file_path,
+                           long plaintextModulus, long phiM, long lifting, long numOfBitsOfModulusChain,
+                           long numOfColOfKeySwitchingMatrix)
+        : plaintextModulus(plaintextModulus), phiM(phiM), lifting(lifting),
+          numOfBitsOfModulusChain(numOfBitsOfModulusChain),
           numOfColOfKeySwitchingMatrix(numOfColOfKeySwitchingMatrix) {
 
     std::cout << "Initialising context object..." << std::endl;
@@ -62,9 +65,12 @@ COED::Encryptor::Encryptor(const std::string &secret_key_file_path, const std::s
     pk_fs.close_output_stream();
 }
 
-COED::Encryptor::Encryptor(const std::string &private_key_file_path, const std::string &public_key_file_path, long plaintextModulus, long lifting, long numOfBitsOfModulusChain, long numOfColOfKeySwitchingMatrix, long desiredSlotCount, long securityLevel)
+COED::Encryptor::Encryptor(const std::string &private_key_file_path, const std::string &public_key_file_path,
+                           long plaintextModulus, long lifting, long numOfBitsOfModulusChain,
+                           long numOfColOfKeySwitchingMatrix, long desiredSlotCount, long securityLevel)
         : plaintextModulus(plaintextModulus), lifting(lifting), numOfBitsOfModulusChain(numOfBitsOfModulusChain),
-          numOfColOfKeySwitchingMatrix(numOfColOfKeySwitchingMatrix), desiredSlotCount(desiredSlotCount), securityLevel(securityLevel) {
+          numOfColOfKeySwitchingMatrix(numOfColOfKeySwitchingMatrix), desiredSlotCount(desiredSlotCount),
+          securityLevel(securityLevel) {
     /**
     * @brief Returns smallest parameter m satisfying various constraints:
     * @param k security parameter
@@ -78,8 +84,10 @@ COED::Encryptor::Encryptor(const std::string &private_key_file_path, const std::
     * prints an informative message if verbose == true
     **/
     //long FindM(long k, long nBits, long c, long p, long d, long s, long chosen_m, bool verbose=false);
-    phiM = helib::FindM(securityLevel, numOfBitsOfModulusChain, numOfColOfKeySwitchingMatrix, plaintextModulus, 0, desiredSlotCount, 0, false);
-    Encryptor(private_key_file_path, public_key_file_path, plaintextModulus, phiM, lifting, numOfBitsOfModulusChain, numOfColOfKeySwitchingMatrix);
+    phiM = helib::FindM(securityLevel, numOfBitsOfModulusChain, numOfColOfKeySwitchingMatrix, plaintextModulus, 0,
+                        desiredSlotCount, 0, false);
+    Encryptor(private_key_file_path, public_key_file_path, plaintextModulus, phiM, lifting, numOfBitsOfModulusChain,
+              numOfColOfKeySwitchingMatrix);
 }
 
 COED::Encryptor::Encryptor(const std::string &secret_key_file_path, const std::string &public_key_file_path) {
@@ -182,7 +190,7 @@ void
 COED::Encryptor::fill_plaintext(helib::Ptxt<helib::BGV> &metadata, const std::vector<bool> &val) {
     int i;
 #pragma omp parallel for shared(metadata, val) private(i) schedule(static, CHUNKSIZE)
-    for(i=0; i<val.size(); i++)
+    for (i = 0; i < val.size(); i++)
         metadata[i] = val[i];
 }
 

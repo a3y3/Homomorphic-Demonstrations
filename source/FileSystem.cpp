@@ -6,18 +6,17 @@
 #include "FileSystem.h"
 
 COED::FileSystem::FileSystem(const std::string &fileSystemPath)
-    : filesystem_path(fileSystemPath)
-    { }
+        : filesystem_path(fileSystemPath) {}
 
 void
 COED::FileSystem::open_output_stream() {
-    if(!output_file_stream.is_open())
+    if (!output_file_stream.is_open())
         output_file_stream.open(filesystem_path);
 }
 
 void
 COED::FileSystem::open_output_stream(const std::ios_base::openmode &mode) {
-    if(!output_file_stream.is_open())
+    if (!output_file_stream.is_open())
         output_file_stream.open(filesystem_path, mode);
 }
 
@@ -28,7 +27,7 @@ COED::FileSystem::get_output_stream() {
 
 void
 COED::FileSystem::close_output_stream() {
-    if(output_file_stream.is_open()) {
+    if (output_file_stream.is_open()) {
         output_file_stream.flush();
         output_file_stream.close();
     }
@@ -36,13 +35,13 @@ COED::FileSystem::close_output_stream() {
 
 void
 COED::FileSystem::open_input_stream() {
-    if(!input_file_stream.is_open())
+    if (!input_file_stream.is_open())
         input_file_stream.open(filesystem_path);
 }
 
 void
 COED::FileSystem::open_input_stream(const std::ios_base::openmode &mode) {
-    if(!input_file_stream.is_open())
+    if (!input_file_stream.is_open())
         input_file_stream.open(filesystem_path, mode);
 }
 
@@ -53,6 +52,6 @@ COED::FileSystem::get_input_stream() {
 
 void
 COED::FileSystem::close_input_stream() {
-    if(input_file_stream.is_open())
+    if (input_file_stream.is_open())
         input_file_stream.close();
 }

@@ -17,7 +17,7 @@ BasicExamples::determine_plaintext_slot() {
     // Hensel lifting (default = 1)
     unsigned long r = 1;
     // Number of bits of the modulus chain
-    unsigned long bits =512; //4096;
+    unsigned long bits = 512; //4096;
     // Number of columns of Key-Switching matrix (default = 2 or 3)
     unsigned long c = 2;
 
@@ -79,7 +79,7 @@ BasicExamples::determine_plaintext_slot() {
 
 void
 BasicExamples::fill_plaintext_with_bits(helib::Ptxt<helib::BGV> &plaintext, const long data) {
-    for(int i=0; i<BIT_SIZE; i++) {
+    for (int i = 0; i < BIT_SIZE; i++) {
         plaintext[i] = (data >> i) & 1;
     }
 }
@@ -135,7 +135,7 @@ BasicExamples::decimal_arithmetic_example() {
 
     // Square the ciphertext
     ctxt.multiplyBy(ctxt);
-    debug(encryptor,ctxt,"Ctxt: Square itself: ", true);
+    debug(encryptor, ctxt, "Ctxt: Square itself: ", true);
     // Plaintext version
     ptxt.multiplyBy(ptxt);
     std::cout << "Ptxt: Square itself: " << ptxt << std::endl;
@@ -150,7 +150,7 @@ BasicExamples::decimal_arithmetic_example() {
     ctxt_divisor.power(plaintext_prime_modulus - 2);
     // a^{p-2}*a = a^{-1}*a = a / a = 1;
     ctxt.multiplyBy(ctxt_divisor);
-    debug(encryptor,ctxt,"Ctxt: Divide by itself: ", true);
+    debug(encryptor, ctxt, "Ctxt: Divide by itself: ", true);
 
     // Plaintext version
     helib::Ptxt<helib::BGV> ptxt_divisor(ptxt);
@@ -160,35 +160,35 @@ BasicExamples::decimal_arithmetic_example() {
 
     // Double it (using additions)
     ctxt += ctxt;
-    debug(encryptor,ctxt,"Ctxt: addition: ", true);
+    debug(encryptor, ctxt, "Ctxt: addition: ", true);
     // Plaintext version
     ptxt += ptxt;
     std::cout << "Ptxt: addition: " << ptxt << std::endl;
 
     // Subtract it from itself (result should be 0)
     ctxt -= ctxt;
-    debug(encryptor,ctxt,"Ctxt: subtraction: ", true);
+    debug(encryptor, ctxt, "Ctxt: subtraction: ", true);
     // Plaintext version
     ptxt -= ptxt;
     std::cout << "Ptxt: substraction: " << ptxt << std::endl;
 
     // We can also add constants
     ctxt.addConstant(NTL::ZZX(1l));
-    debug(encryptor,ctxt,"Ctxt: add constant(1): ", true);
+    debug(encryptor, ctxt, "Ctxt: add constant(1): ", true);
     // Plaintext version
     ptxt.addConstant(NTL::ZZX(1l));
     std::cout << "Ptxt: add constant(1): " << ptxt << std::endl;
 
     // And multiply by constants
     ctxt *= NTL::ZZX(1l);
-    debug(encryptor,ctxt,"Ctxt: multiply by constant(1): ", true);
+    debug(encryptor, ctxt, "Ctxt: multiply by constant(1): ", true);
     // Plaintext version
     ptxt *= NTL::ZZX(1l);
     std::cout << "Ptxt: multiply by constant(1): " << ptxt << std::endl;
 
     // We can also perform ciphertext-plaintext operations
     ctxt += ptxt;
-    debug(encryptor,ctxt,"Ctxt: add ptxt: ", true);
+    debug(encryptor, ctxt, "Ctxt: add ptxt: ", true);
 }
 
 void
@@ -295,15 +295,14 @@ BasicExamples::packed_binary_arithmetic_example() {
 }
 
 
-
 void
 BasicExamples::fill_plaintext_with_numbers(std::vector<long> &plaintext, const long maxValue, bool reverse) {
     if (!reverse)
-        for(int i=0; i<=maxValue; ++i) {
+        for (int i = 0; i <= maxValue; ++i) {
             plaintext[i] = i;
         }
     else
-        for(int i=maxValue-1; i>=0; --i) {
+        for (int i = maxValue - 1; i >= 0; --i) {
             plaintext[i] = i;
         }
 }
@@ -372,16 +371,16 @@ BasicExamples::packed_decimal_arithmetic_scalar_product_example() {
     COED::Util::info("Finished creating encryptor.");
 
     int size = 3;
-    long Varray[]={1,2,3};
-    long Uarray[]={4,5,6};
+    long Varray[] = {1, 2, 3};
+    long Uarray[] = {4, 5, 6};
 
-    NTL::ZZX Vpoly,Upoly;
+    NTL::ZZX Vpoly, Upoly;
     Vpoly.SetLength(size);
     Upoly.SetLength(size);
 
     for (int i = 0; i < size; ++i) {
         NTL::SetCoeff(Vpoly, i, Varray[i]);
-        NTL::SetCoeff(Upoly, size-1-i, Uarray[i]);
+        NTL::SetCoeff(Upoly, size - 1 - i, Uarray[i]);
     }
     std::cout << "Vpoly: " << Vpoly << std::endl;
     std::cout << "Upoly: " << Upoly << std::endl;
@@ -391,15 +390,15 @@ BasicExamples::packed_decimal_arithmetic_scalar_product_example() {
     NTL::ZZX Vpoly_dec, Upoly_dec;
     encryptor.getPublicKey()->Encrypt(Vctxt, Vpoly);
     encryptor.getSecretKey()->Decrypt(Vpoly_dec, Vctxt);
-    std::cout << "dec(Vctxt)=" <<Vpoly_dec << std::endl;
+    std::cout << "dec(Vctxt)=" << Vpoly_dec << std::endl;
     encryptor.getPublicKey()->Encrypt(Uctxt, Upoly);
     encryptor.getSecretKey()->Decrypt(Upoly_dec, Uctxt);
-    std::cout << "dec(Uctxt)=" <<Upoly_dec << std::endl;
+    std::cout << "dec(Uctxt)=" << Upoly_dec << std::endl;
 
     helib::Ctxt product_ctxt(Vctxt);
     product_ctxt.multiplyBy(Uctxt);
 
     NTL::ZZX product_dec;
     encryptor.getSecretKey()->Decrypt(product_dec, product_ctxt);
-    std::cout << "dec(product_ctxt)=" <<product_dec << std::endl;
+    std::cout << "dec(product_ctxt)=" << product_dec << std::endl;
 }
