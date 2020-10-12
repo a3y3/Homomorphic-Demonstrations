@@ -7,13 +7,51 @@
 #include "Util.h"
 #include <iostream>
 
-void Calculator::add(helib::Ctxt *a, const helib::Ctxt& b) {
+/**
+ * Adds 2 ciphertexts, storing the result in @param a.
+ * @param a First ciphertext
+ * @param b Second ciphertext
+**/
+void Calculator::add(helib::Ctxt *a, const helib::Ctxt &b) {
     a->addCtxt(b);
 }
 
+/**
+ * Subtracts 2 ciphertexts, storing the result in @param a.
+ * @param a First ciphertext
+ * @param b Second ciphertext
+**/
+void Calculator::substract(helib::Ctxt *a, const helib::Ctxt &b) {
+    a->addCtxt(b, true);
+}
+
+/**
+ * Multiplies 2 ciphertexts, storing the result in @param a.
+ * @param a First ciphertext
+ * @param b Second ciphertext
+**/
+void Calculator::multiply(helib::Ctxt *a, const helib::Ctxt &b) {
+    a->multiplyBy(b);
+}
+
+/**
+ * Divides 2 ciphertexts, storing the result in @param a.
+ * @param a First ciphertext
+ * @param b Second ciphertext
+**/
+void Calculator::divide(helib::Ctxt *a, const helib::Ctxt &b) {
+
+}
+
+/**
+ * Adds 2 ciphertexts, storing the result in @param a.
+ * @param a First ciphertext
+ *
+**/
 void Calculator::run_calculator() {
     int a, b;
     char op;
+    char continue_or_exit;
     int plaintext_prime_modulus = 53;
     int phiM = 2000;
     int lifting = 1;
@@ -28,28 +66,49 @@ void Calculator::run_calculator() {
                               lifting,
                               numOfBitsOfModulusChain,
                               numOfColOfKeySwitchingMatrix);
-
-    accept_inputs(&a, &b, &op);
-    exit_on_invalid_op(op);
-
+    // a and b are integers, we need to convert them into "plaintext" objects.
     helib::Ptxt<helib::BGV> ptxt_a(*(encryptor.getContext()));
-    ptxt_a[1] = a;
-
     helib::Ptxt<helib::BGV> ptxt_b(*(encryptor.getContext()));
-    ptxt_b[1] = b;
 
+    // create ciphertext objects for each and encrypt them using the public key
     helib::Ctxt ctxt_a(*(encryptor.getPublicKey()));
-    encryptor.getPublicKey()->Encrypt(ctxt_a, ptxt_a);
     helib::Ctxt ctxt_b(*(encryptor.getPublicKey()));
-    encryptor.getPublicKey()->Encrypt(ctxt_b, ptxt_b);
 
-    switch (op) {
-        case '+': add(&ctxt_a, ctxt_b);
-            break;
-    }
-    std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
-    encryptor.getEncryptedArray()->decrypt(ctxt_a, *encryptor.getSecretKey(), plaintext);
-    std::cout<<"Result: " <<plaintext[1];
+    do {
+        accept_inputs(&a, &b, &op);
+        exit_on_invalid_op(op);
+
+        ptxt_a[1] = a;
+        ptxt_b[1] = b;
+
+        encryptor.getPublicKey()->Encrypt(ctxt_a, ptxt_a);
+        encryptor.getPublicKey()->Encrypt(ctxt_b, ptxt_b);
+
+        switch (op) {
+            case '+':
+                add(&ctxt_a, ctxt_b);
+                break;
+            case '-':
+                substract(&ctxt_a, ctxt_b);
+                break;
+            case '*':
+                multiply(&ctxt_a, ctxt_b);
+                break;
+            case '/':
+                divide(&ctxt_a, ctxt_b);
+                break;
+            default:
+                COED::Util::error(
+                        "Fatal: Program flow reached unintended destination, exit_on_invalid_op() didn't work as intended! ");
+                exit(1);
+        }
+        std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
+        encryptor.getEncryptedArray()->decrypt(ctxt_a, *encryptor.getSecretKey(), plaintext);
+        std::cout << "Result: " << plaintext[1];
+
+        std::cout << "Try another operation? (y/n)" << std::endl;
+        std::cin >> continue_or_exit;
+    } while (continue_or_exit == 'y');
 }
 
 void Calculator::accept_inputs(int *a, int *b, char *op) {
@@ -69,3 +128,7 @@ void Calculator::exit_on_invalid_op(char op) {
         exit(126);
     }
 }
+
+
+
+
