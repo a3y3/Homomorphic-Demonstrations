@@ -42,7 +42,8 @@ set(SOURCE_FILES
         FileSystem.cpp
         Util.cpp
         BasicExamples.cpp
-        Calculator.cpp)
+        Calculator.cpp
+        DotProduct.cpp)
 
 set_source_files_properties(${SOURCE_FILES} PROPERTIES LANGUAGE CXX)
 

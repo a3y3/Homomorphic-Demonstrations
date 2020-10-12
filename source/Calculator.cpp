@@ -71,7 +71,7 @@ void Calculator::run_calculator() {
     helib::Ptxt<helib::BGV> ptxt_a(*(encryptor.getContext()));
     helib::Ptxt<helib::BGV> ptxt_b(*(encryptor.getContext()));
 
-    // create ciphertext objects for each and encrypt them using the public key
+    // create ciphertext objects for each. These objects are later encrypted using the public key.
     helib::Ctxt ctxt_a(*(encryptor.getPublicKey()));
     helib::Ctxt ctxt_b(*(encryptor.getPublicKey()));
 
@@ -103,6 +103,7 @@ void Calculator::run_calculator() {
                         "Fatal: Program flow reached unintended destination, exit_on_invalid_op() didn't work as intended!");
                 exit(1);
         }
+
         std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
         encryptor.getEncryptedArray()->decrypt(ctxt_a, *encryptor.getSecretKey(), plaintext);
         std::cout << "Result: " << plaintext[1]<<std::endl;
