@@ -21,7 +21,7 @@ void Calculator::add(helib::Ctxt *a, const helib::Ctxt &b) {
  * @param a First ciphertext
  * @param b Second ciphertext
 **/
-void Calculator::substract(helib::Ctxt *a, const helib::Ctxt &b) {
+void Calculator::subtract(helib::Ctxt *a, const helib::Ctxt &b) {
     a->addCtxt(b, true);
 }
 
@@ -39,14 +39,15 @@ void Calculator::multiply(helib::Ctxt *a, const helib::Ctxt &b) {
  * @param a First ciphertext
  * @param b Second ciphertext
 **/
-void Calculator::divide(helib::Ctxt *a, const helib::Ctxt &b) {
-
+void Calculator::divide(helib::Ctxt *a, const helib::Ctxt &b, int plaintext_prime_modulus) {
+    //Division uses Fermat's Little Theorm, a^-1=a^(p-2) mod p
+    helib::Ctxt ctxt_divisor(b);
+    ctxt_divisor.power(plaintext_prime_modulus - 2);
+    a->multiplyBy(ctxt_divisor);
 }
 
 /**
- * Adds 2 ciphertexts, storing the result in @param a.
- * @param a First ciphertext
- *
+ * Driver function. Runs the calculator in a loop until the user chooses to exit.
 **/
 void Calculator::run_calculator() {
     int a, b;
@@ -89,28 +90,35 @@ void Calculator::run_calculator() {
                 add(&ctxt_a, ctxt_b);
                 break;
             case '-':
-                substract(&ctxt_a, ctxt_b);
+                subtract(&ctxt_a, ctxt_b);
                 break;
             case '*':
                 multiply(&ctxt_a, ctxt_b);
                 break;
             case '/':
-                divide(&ctxt_a, ctxt_b);
+                divide(&ctxt_a, ctxt_b, plaintext_prime_modulus);
                 break;
             default:
                 COED::Util::error(
-                        "Fatal: Program flow reached unintended destination, exit_on_invalid_op() didn't work as intended! ");
+                        "Fatal: Program flow reached unintended destination, exit_on_invalid_op() didn't work as intended!");
                 exit(1);
         }
         std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
         encryptor.getEncryptedArray()->decrypt(ctxt_a, *encryptor.getSecretKey(), plaintext);
-        std::cout << "Result: " << plaintext[1];
+        std::cout << "Result: " << plaintext[1]<<std::endl;
 
         std::cout << "Try another operation? (y/n)" << std::endl;
         std::cin >> continue_or_exit;
     } while (continue_or_exit == 'y');
 }
 
+/**
+ * Accepts int a, int b and an operator from the user. This function doesn't filter inputs, that functionality should be
+ * offloaded to another method.
+ * @param a pointer to the first input
+ * @param b pointer to the second input
+ * @param op the operator to apply on operands a and b. Currently supports +, -, *, and /.
+**/
 void Calculator::accept_inputs(int *a, int *b, char *op) {
     std::cout << "X=? ";
     std::cin >> *a;
@@ -121,7 +129,10 @@ void Calculator::accept_inputs(int *a, int *b, char *op) {
     std::cout << "operator? (+-*/) ";
     std::cin >> *op;
 }
-
+/**
+ * If the operator is not supported, this method throws a fatal error and exits with 126.
+ * @param op the operator to be validated.
+*/
 void Calculator::exit_on_invalid_op(char op) {
     if (op != '+' && op != '-' && op != '*' && op != '/') {
         COED::Util::error("Fatal: Invalid operator, must be one of +-*/");

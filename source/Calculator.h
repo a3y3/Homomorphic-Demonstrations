@@ -14,11 +14,11 @@ public:
 
     static void add(helib::Ctxt *a, const helib::Ctxt& b);
 
-    static void substract(helib::Ctxt *a, const helib::Ctxt& b);
+    static void subtract(helib::Ctxt *a, const helib::Ctxt& b);
 
     static void multiply(helib::Ctxt *a, const helib::Ctxt& b);
 
-    static void divide(helib::Ctxt *a, const helib::Ctxt& b);
+    static void divide(helib::Ctxt *a, const helib::Ctxt& b, int plaintext_prime_modulus);
 
 private:
     static void accept_inputs(int *a, int *b, char* op);
