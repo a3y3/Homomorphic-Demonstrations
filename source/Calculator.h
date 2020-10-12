@@ -6,11 +6,13 @@
 #define HOMOMORPHIC_DEMONSTRATIONS_CALCULATOR_H
 
 
+#include "Encryptor.h"
+
 class Calculator {
 public:
     static void run_calculator();
 
-    int add(int a, int b);
+    static void add(helib::Ctxt *a, const helib::Ctxt& b);
 
     int substract(int a, int b);
 
