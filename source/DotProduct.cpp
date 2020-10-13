@@ -14,7 +14,7 @@
  * This function creates 2 ciphertexts, calculates their product, then uses helib's totalSums operation to calculate
  * the sum.
  */
-void DotProduct::run_dot_product() {
+void DotProduct::run_program() {
     int plaintext_prime_modulus = 53;
     int phiM = 3000;
     int lifting = 1;
@@ -50,9 +50,7 @@ void DotProduct::run_dot_product() {
     encryptor.getPublicKey()->Encrypt(ctxt_a, ptxt_a);
     encryptor.getPublicKey()->Encrypt(ctxt_b, ptxt_b);
 
-    //Multiply and find sum
-    ctxt_a.multiplyBy(ctxt_b);
-    helib::totalSums(*encryptor.getEncryptedArray(), ctxt_a);
+    DotProduct::dot_product(&ctxt_a, ctxt_b, encryptor);
 
     //Decrypt and show result
     std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
@@ -76,3 +74,10 @@ void DotProduct::accept_inputs(int *a, int *b) {
         std::cin >> b[i];
     }
 }
+
+void DotProduct::dot_product(helib::Ctxt *a, helib::Ctxt &b, const COED::Encryptor& encryptor) {
+    //Multiply and find sum
+    a->multiplyBy(b);
+    helib::totalSums(*encryptor.getEncryptedArray(), *a);
+}
+

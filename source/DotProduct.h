@@ -9,10 +9,10 @@
 
 class DotProduct {
 public:
-    static void run_dot_product();
+    static void run_program();
+    static void dot_product(helib::Ctxt *a, helib::Ctxt& b, const COED::Encryptor&);
 private:
     static void accept_inputs(int *a, int *b);
-    static void sum_ctxt_elements(helib::Ctxt *a, COED::Encryptor);
 };
 
 #endif //HOMOMORPHIC_DEMONSTRATIONS_DOTPRODUCT_H
