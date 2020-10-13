@@ -51,8 +51,8 @@ void MatrixMultiplier::main() {
 
     for (int i = 0; i < NCOLS; ++i) {
         for (int j = 0; j < NROWS; ++j) {
-            ptxt_a[i][j+1] = a[i][j];
-            ptxt_b[i][j+1] = b[i][j];
+            ptxt_a[i][j + 1] = a[i][j];
+            ptxt_b[i][j + 1] = b[i][j];
         }
     }
 
@@ -62,6 +62,16 @@ void MatrixMultiplier::main() {
     }
 
     int result[NCOLS][NROWS];
+
+    std::cout << "\nCalculating result...\n";
+    matrix_multiplication(ctxt_a, ctxt_b, result, encryptor);
+
+    COED::Util::info("Result:");
+    display_matrix(result);
+}
+
+void MatrixMultiplier::matrix_multiplication(helib::Ctxt ctxt_a[], helib::Ctxt ctxt_b[], int result[][NROWS],
+                                             const COED::Encryptor &encryptor) {
     for (int i = 0; i < NCOLS; ++i) {
         for (int j = 0; j < NROWS; ++j) {
             /*
@@ -78,9 +88,6 @@ void MatrixMultiplier::main() {
             result[i][j] = plaintext[1];
         }
     }
-
-    COED::Util::info("Result:");
-    display_matrix(result);
 }
 
 void
@@ -110,7 +117,10 @@ void MatrixMultiplier::accept_matrix(int a[][NCOLS]) {
         }
     }
 }
-
+/**
+ * Transposes an input matrix.
+ * @param a Input matrix.
+ */
 void MatrixMultiplier::transpose_matrix(int a[][NCOLS]) {
     for (int i = 0; i < NCOLS; ++i) {
         for (int j = 0; j <= i; ++j) {
@@ -121,6 +131,10 @@ void MatrixMultiplier::transpose_matrix(int a[][NCOLS]) {
     }
 }
 
+/**
+ * Displays the matrix in column row form.
+ * @param a 2D Matrix
+ */
 void MatrixMultiplier::display_matrix(int a[][NCOLS]) {
     for (int i = 0; i < NCOLS; ++i) {
         for (int j = 0; j < NROWS; ++j) {
