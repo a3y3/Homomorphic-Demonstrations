@@ -310,7 +310,7 @@ BasicExamples::fill_plaintext_with_numbers(std::vector<long> &plaintext, const l
 void
 BasicExamples::packed_decimal_arithmetic_example() {
     unsigned long plaintext_prime_modulus = 53;
-    unsigned long phiM = 26651;
+    unsigned long phiM = 6651;
     unsigned long lifting = 1;
     unsigned long numOfBitsOfModulusChain = 512;
     unsigned long numOfColOfKeySwitchingMatrix = 2;

@@ -7,10 +7,12 @@
 #include <iostream>
 #include "BasicExamples.h"
 #include "Calculator.h"
+#include "DotProduct.h"
 
 int main() {
     std::cout << "Demonstration 1: Homomorphic Calculator" << std::endl;
-    Calculator::run_calculator();
+//    Calculator::run_calculator();
+    DotProduct::run_dot_product();
 
     //BasicExamples::determine_plaintext_slot();
 
@@ -20,7 +22,7 @@ int main() {
 
     //BasicExamples::packed_decimal_arithmetic_example();
 
-    //BasicExamples::packed_decimal_arithmetic_scalar_product_example();
+//    BasicExamples::packed_decimal_arithmetic_scalar_product_example();
 
     return 0;
 }

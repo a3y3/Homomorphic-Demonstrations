@@ -9,6 +9,11 @@
 
 #define MAX_VECTOR_SIZE 5
 
+/**
+ * Runs the main functionality of the dot product.
+ * This function creates 2 ciphertexts, calculates their product, then uses helib's totalSums operation to calculate
+ * the sum.
+ */
 void DotProduct::run_dot_product() {
     int plaintext_prime_modulus = 53;
     int phiM = 3000;
@@ -29,29 +34,37 @@ void DotProduct::run_dot_product() {
     int b[MAX_VECTOR_SIZE];
     accept_inputs(a, b);
 
+    // Create plain text objects. Later, the array elements are added to these.
     helib::Ptxt<helib::BGV> ptxt_a(*(encryptor.getContext()));
     helib::Ptxt<helib::BGV> ptxt_b(*(encryptor.getContext()));
 
+    // Create ciphertext objects. The plaintext objects are encrypted by the public key in the ciphertexts.
     helib::Ctxt ctxt_a(*(encryptor.getPublicKey()));
     helib::Ctxt ctxt_b(*(encryptor.getPublicKey()));
 
     for (int i = 1; i <= MAX_VECTOR_SIZE; ++i) {
-        ptxt_a[i] = a[i-1];
-        ptxt_b[i] = b[i-1];
+        ptxt_a[i] = a[i - 1];
+        ptxt_b[i] = b[i - 1];
     }
 
     encryptor.getPublicKey()->Encrypt(ctxt_a, ptxt_a);
     encryptor.getPublicKey()->Encrypt(ctxt_b, ptxt_b);
 
+    //Multiply and find sum
     ctxt_a.multiplyBy(ctxt_b);
     helib::totalSums(*encryptor.getEncryptedArray(), ctxt_a);
 
+    //Decrypt and show result
     std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
     encryptor.getEncryptedArray()->decrypt(ctxt_a, *encryptor.getSecretKey(), plaintext);
-    std::cout << "Dot Product: " << plaintext[1]<<std::endl;
-
+    std::cout << "Dot Product: " << plaintext[1] << std::endl;
 }
 
+/**
+ * Accepts inputs in arrays
+ * @param a First array
+ * @param b Second array
+ */
 void DotProduct::accept_inputs(int *a, int *b) {
     std::cout << "Enter " << MAX_VECTOR_SIZE << " elements for Vector A (Hit <Return> for inputting each element)"
               << std::endl;

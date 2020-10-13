@@ -19,6 +19,9 @@ public:
 
     static void packed_decimal_arithmetic_example();
 
+    static void
+    debug(const COED::Encryptor &encryptor, const helib::Ctxt &ctxt, const std::string &msg, bool space = false);
+
     static void packed_decimal_arithmetic_scalar_product_example();
 
 private:
@@ -26,8 +29,6 @@ private:
 
     static void print_vector(const std::string &msg, const std::vector<long> &vec, bool space = false);
 
-    static void
-    debug(const COED::Encryptor &encryptor, const helib::Ctxt &ctxt, const std::string &msg, bool space = false);
 
     static void fill_plaintext_with_numbers(std::vector<long> &plaintext, const long maxValue, bool reverse = false);
 };
