@@ -8,6 +8,12 @@
 #include "Util.h"
 #include "DotProduct.h"
 
+/**
+ * Runs the main functionality, including input, etc.
+ * Matrix multiplication can be seen as a dot product of several vectors. This function takes matrix inputs, transposes
+ * the second matrix (for ease with dot product, think about how the elements of a matrix are multiplied), stores them
+ * in arrays of ciphertext object, then calls @code{DotProduct::dot_product{}} @code{NCOLS} * @code{NROWS} times.
+ */
 void MatrixMultiplier::main() {
     int plaintext_prime_modulus = 53;
     int phiM = 3000;
@@ -70,6 +76,13 @@ void MatrixMultiplier::main() {
     display_matrix(result);
 }
 
+/**
+ * Calculates matrix multiplication as a dot product of n vectors.
+ * @param ctxt_a First array of vector.
+ * @param ctxt_b Second array of vector. Note that this is the transposed second matrix.
+ * @param result The m*n result matrix.
+ * @param encryptor needed to pass to @code{DotProduct::dot_product()}.
+ */
 void MatrixMultiplier::matrix_multiplication(helib::Ctxt ctxt_a[], helib::Ctxt ctxt_b[], int result[][NROWS],
                                              const COED::Encryptor &encryptor) {
     for (int i = 0; i < NCOLS; ++i) {
@@ -90,6 +103,12 @@ void MatrixMultiplier::matrix_multiplication(helib::Ctxt ctxt_a[], helib::Ctxt c
     }
 }
 
+/**
+ * Helper function. Initializes the plaintext objects in a loop.
+ * @param ptxt Array of plaintext objects.
+ * @param count The number of initializations to be perfomed.
+ * @param encryptor needed to get the context.
+ */
 void
 MatrixMultiplier::initialize_plaintexts(helib::Ptxt<helib::BGV> ptxt[], int count, const COED::Encryptor &encryptor) {
     for (int i = 0; i < count; ++i) {
@@ -97,6 +116,11 @@ MatrixMultiplier::initialize_plaintexts(helib::Ptxt<helib::BGV> ptxt[], int coun
     }
 }
 
+/**
+ * Inputs values for the given 2D matrices.
+ * @param a First matrix
+ * @param b Second matrix in which values are to be accepted from the user.
+ */
 void MatrixMultiplier::accept_inputs(int a[][NROWS], int b[][NROWS]) {
     std::cout << "\nMatrix 1:";
     int columns = NCOLS;
@@ -110,6 +134,10 @@ void MatrixMultiplier::accept_inputs(int a[][NROWS], int b[][NROWS]) {
     MatrixMultiplier::accept_matrix(b);
 }
 
+/**
+ * Helper function for @code{accept_inputs()}.
+ * @param a The matrix in which values are to be accepted.
+ */
 void MatrixMultiplier::accept_matrix(int a[][NCOLS]) {
     for (int i = 0; i < NCOLS; ++i) {
         for (int j = 0; j < NROWS; ++j) {
@@ -117,6 +145,7 @@ void MatrixMultiplier::accept_matrix(int a[][NCOLS]) {
         }
     }
 }
+
 /**
  * Transposes an input matrix.
  * @param a Input matrix.
