@@ -35,9 +35,9 @@ void ConvolutionFilterEvaluator::evaluate_convolutional_filter(helib::Ctxt *inpu
 
 void ConvolutionFilterEvaluator::main() {
     int plaintext_prime_modulus = 53;
-    int phiM = 11971;
+    int phiM = 7363;
     int lifting = 1;
-    int numOfBitsOfModulusChain = 512;
+    int numOfBitsOfModulusChain = 256;
     int numOfColOfKeySwitchingMatrix = 2;
 
     COED::Util::info("Starting program ...");
@@ -104,30 +104,45 @@ void ConvolutionFilterEvaluator::main() {
 
 
 void ConvolutionFilterEvaluator::accept_inputs(int **input_data, int **filter) {
-    
+    std::cout << "\nType 'y' for predefined inputs, else type 'n' for inputting custom values\n";
+    char choice = 'n';
+    std::cin >> choice;
     int sample_data[] = {0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0,
                          1, 0, 0, 1};
     int sample_filter[] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
 
-    std::cout << "\nInput data is a 6x6 matrix.";
-    for (int i = 0; i < INPUT_DATA_COLUMNS; ++i) {
-        std::cout << "\nInput " << INPUT_DATA_COLUMNS << " values for input data's row number " << i
-                  << " (Hit <Return> after each)";
-        for (int j = 0; j < INPUT_DATA_COLUMNS; ++j) {
-//            std::cin >> input_data[i][j];
-            input_data[i][j] = sample_data[i * INPUT_DATA_COLUMNS + j];
+    if (choice == 'y') {
+        for (int i = 0; i < INPUT_DATA_COLUMNS; ++i) {
+            for (int j = 0; j < INPUT_DATA_COLUMNS; ++j) {
+                input_data[i][j] = sample_data[i * INPUT_DATA_COLUMNS + j];
+            }
+        }
+
+        for (int i = 0; i < FILTER_COLUMNS; ++i) {
+            for (int j = 0; j < FILTER_ROWS; ++j) {
+                filter[i][j] = sample_filter[i * FILTER_COLUMNS + j];
+            }
+        }
+    } else {
+        std::cout << "\nInput data is a 6x6 matrix.";
+        for (int i = 0; i < INPUT_DATA_COLUMNS; ++i) {
+            std::cout << "\nInput " << INPUT_DATA_COLUMNS << " values for input data's row number " << i
+                      << " (Hit <Return> after each)";
+            for (int j = 0; j < INPUT_DATA_COLUMNS; ++j) {
+                std::cin >> input_data[i][j];
+            }
+        }
+
+        std::cout << "\nThe filter is a 3x3 matrix.";
+        for (int i = 0; i < FILTER_COLUMNS; ++i) {
+            std::cout << "\nInput " << FILTER_COLUMNS << " values for input data's row number " << i
+                      << " (Hit <Return> after each)";
+            for (int j = 0; j < FILTER_ROWS; ++j) {
+                std::cin >> filter[i][j];
+            }
         }
     }
 
-    std::cout << "\nThe filter is a 3x3 matrix.";
-    for (int i = 0; i < FILTER_COLUMNS; ++i) {
-        std::cout << "\nInput " << FILTER_COLUMNS << " values for input data's row number " << i
-                  << " (Hit <Return> after each)";
-        for (int j = 0; j < FILTER_ROWS; ++j) {
-//            std::cin >> filter[i][j];
-            filter[i][j] = sample_filter[i * FILTER_COLUMNS + j];
-        }
-    }
 }
 
 void ConvolutionFilterEvaluator::display_matrix(int **a, int m, int n) {
