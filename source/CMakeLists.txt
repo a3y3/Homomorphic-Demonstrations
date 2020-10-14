@@ -43,7 +43,8 @@ set(SOURCE_FILES
         Util.cpp
         BasicExamples.cpp
         Calculator.cpp
-        DotProduct.cpp)
+        DotProduct.cpp
+        MatrixMultiplier.cpp ConvolutionFilterEvaluator.cpp ConvolutionFilterEvaluator.h)
 
 set_source_files_properties(${SOURCE_FILES} PROPERTIES LANGUAGE CXX)
 
