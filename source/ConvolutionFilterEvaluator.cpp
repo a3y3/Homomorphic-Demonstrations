@@ -6,17 +6,38 @@
 #include <iostream>
 #include "Encryptor.h"
 #include "Util.h"
+#include "DotProduct.h"
 
 void ConvolutionFilterEvaluator::evaluate_convolutional_filter(helib::Ctxt *input_data, helib::Ctxt &filter,
-                                                               const COED::Encryptor &, int **result) {
-
+                                                               const COED::Encryptor &encryptor, int **result) {
+    int rotate_counter = 0;
+    for (int i = 0; i < FEATURE_MAP_COLUMNS; ++i) {
+        for (int j = 0; j < FEATURE_MAP_ROWS; ++j) {
+            helib::Ctxt copy(*input_data);
+            std::cout << std::endl;
+//            COED::Util::debug("Finished copy");
+            DotProduct::dot_product(&copy, filter, encryptor);
+//            COED::Util::debug("Finished dot product");
+            std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
+            encryptor.getEncryptedArray()->decrypt(copy, *encryptor.getSecretKey(), plaintext);
+            result[i][j] = plaintext[1];
+            std::cout << "Found result[" << i << "][" << j << "]=" << result[i][j];
+            rotate_counter++;
+            if (rotate_counter < 4) {
+                encryptor.getEncryptedArray()->rotate(filter, 1);
+            } else {
+                encryptor.getEncryptedArray()->rotate(filter, 3);
+                rotate_counter = 0;
+            }
+        }
+    }
 }
 
 void ConvolutionFilterEvaluator::main() {
     int plaintext_prime_modulus = 53;
-    int phiM = 3277;
+    int phiM = 11971;
     int lifting = 1;
-    int numOfBitsOfModulusChain = 128;
+    int numOfBitsOfModulusChain = 512;
     int numOfColOfKeySwitchingMatrix = 2;
 
     COED::Util::info("Starting program ...");
@@ -62,8 +83,7 @@ void ConvolutionFilterEvaluator::main() {
         for (int j = 0; j < INPUT_DATA_ROWS; ++j) {
             if (i < FILTER_COLUMNS && j < FILTER_ROWS) {
                 ptxt_filter[fillerIndex++] = filter[i][j];
-            }
-            fillerIndex++;
+            } else { fillerIndex++; }
         }
     }
 
@@ -72,24 +92,30 @@ void ConvolutionFilterEvaluator::main() {
 
     int **feature_map;
     feature_map = new int *[FEATURE_MAP_COLUMNS];
-    for (int i = 0; i < FILTER_COLUMNS; ++i) {
+    for (int i = 0; i < FEATURE_MAP_COLUMNS; ++i) {
         feature_map[i] = new int[FEATURE_MAP_ROWS];
     }
 
     evaluate_convolutional_filter(&ctxt_input_data, ctxt_filter, encryptor, feature_map);
 
-    std::cout << "\n Result [Feature Map]:\n";
-    display_matrix(feature_map, FEATURE_MAP_COLUMNS, FILTER_ROWS);
+    std::cout << "\nResult [Feature Map]:\n";
+    display_matrix(feature_map, FEATURE_MAP_COLUMNS, FEATURE_MAP_ROWS);
 }
 
 
 void ConvolutionFilterEvaluator::accept_inputs(int **input_data, int **filter) {
+    
+    int sample_data[] = {0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0,
+                         1, 0, 0, 1};
+    int sample_filter[] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+
     std::cout << "\nInput data is a 6x6 matrix.";
     for (int i = 0; i < INPUT_DATA_COLUMNS; ++i) {
         std::cout << "\nInput " << INPUT_DATA_COLUMNS << " values for input data's row number " << i
                   << " (Hit <Return> after each)";
         for (int j = 0; j < INPUT_DATA_COLUMNS; ++j) {
-            std::cin >> input_data[i][j];
+//            std::cin >> input_data[i][j];
+            input_data[i][j] = sample_data[i * INPUT_DATA_COLUMNS + j];
         }
     }
 
@@ -98,7 +124,8 @@ void ConvolutionFilterEvaluator::accept_inputs(int **input_data, int **filter) {
         std::cout << "\nInput " << FILTER_COLUMNS << " values for input data's row number " << i
                   << " (Hit <Return> after each)";
         for (int j = 0; j < FILTER_ROWS; ++j) {
-            std::cin >> filter[i][j];
+//            std::cin >> filter[i][j];
+            filter[i][j] = sample_filter[i * FILTER_COLUMNS + j];
         }
     }
 }
