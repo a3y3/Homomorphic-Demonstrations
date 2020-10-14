@@ -7,17 +7,25 @@
 #include "Encryptor.h"
 #include "Util.h"
 #include "DotProduct.h"
-
-void ConvolutionFilterEvaluator::evaluate_convolutional_filter(helib::Ctxt *input_data, helib::Ctxt &filter,
+/**
+ * Evaluates the convolution filter.
+ * Given a 6x6 input_data and a 3x3 filter, the evaluation is defined as a 4x4 filter matrix where each value in the
+ * filter matrix is a dot product of the input_data with the filter. In total, there will be 16 dot products.
+ * The inputs are expected to be 1d ciphertexts of the matrices. This function will calculate the dot product, rotate
+ * the ciphertext, calculate the next dot product, and so on.
+ * @param input_data the input matrix.
+ * @param filter the filter to be applied on the input matrix.
+ * @param encryptor needed for rotating the filter ciphertext.
+ * @param result final values are put inside this 2d array.
+ */
+static void ConvolutionFilterEvaluator::evaluate_convolutional_filter(helib::Ctxt *input_data, helib::Ctxt &filter,
                                                                const COED::Encryptor &encryptor, int **result) {
     int rotate_counter = 0;
     for (int i = 0; i < FEATURE_MAP_COLUMNS; ++i) {
         for (int j = 0; j < FEATURE_MAP_ROWS; ++j) {
             helib::Ctxt copy(*input_data);
             std::cout << std::endl;
-//            COED::Util::debug("Finished copy");
             DotProduct::dot_product(&copy, filter, encryptor);
-//            COED::Util::debug("Finished dot product");
             std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
             encryptor.getEncryptedArray()->decrypt(copy, *encryptor.getSecretKey(), plaintext);
             result[i][j] = plaintext[1];
@@ -32,7 +40,11 @@ void ConvolutionFilterEvaluator::evaluate_convolutional_filter(helib::Ctxt *inpu
         }
     }
 }
-
+/**
+ * Runner of the core demonstration functionality.
+ * This function accepts data, converts the 2d matrices into 1d plain texts, enrypts them, then calls
+ * @code{evaluate_convolutional_filter()} to calculate the result.
+ */
 void ConvolutionFilterEvaluator::main() {
     int plaintext_prime_modulus = 53;
     int phiM = 7363;
@@ -102,7 +114,12 @@ void ConvolutionFilterEvaluator::main() {
     display_matrix(feature_map, FEATURE_MAP_COLUMNS, FEATURE_MAP_ROWS);
 }
 
-
+/**
+ * Accepts input from the user for input_data and the filter.
+ * If the user chooses, this function also has predefined values, which serve for a good demonstration.
+ * @param input_data 2D array for the input matrix.
+ * @param filter 2D filter array.
+ */
 void ConvolutionFilterEvaluator::accept_inputs(int **input_data, int **filter) {
     std::cout << "\nType 'y' for predefined inputs, else type 'n' for inputting custom values\n";
     char choice = 'n';
@@ -145,6 +162,12 @@ void ConvolutionFilterEvaluator::accept_inputs(int **input_data, int **filter) {
 
 }
 
+/**
+ * Pretty print a given matrix, given the number of rows and columns.
+ * @param a 2D matrix.
+ * @param m number of columns.
+ * @param n number of rows.
+ */
 void ConvolutionFilterEvaluator::display_matrix(int **a, int m, int n) {
     for (int i = 0; i < m; ++i) {
         for (int j = 0; j < n; ++j) {
