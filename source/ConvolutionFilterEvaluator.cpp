@@ -64,7 +64,7 @@ void ConvolutionFilterEvaluator::evaluate_convolutional_filter_parallel(helib::C
             encryptor.getEncryptedArray()->rotate(filter_t1, 6);
         } else if (threadID == 2) {
             encryptor.getEncryptedArray()->rotate(filter_t2, 12);
-        } else {
+        } else if (threadID == 3) {
             encryptor.getEncryptedArray()->rotate(filter_t3, 18);
         }
 #pragma omp for
@@ -91,7 +91,8 @@ void ConvolutionFilterEvaluator::evaluate_convolutional_filter_parallel(helib::C
             }
         }
     }
-};
+}
+
 #pragma clang diagnostic pop
 
 /**
@@ -171,7 +172,7 @@ void ConvolutionFilterEvaluator::main() {
     auto seq_duration = std::chrono::duration_cast<std::chrono::milliseconds>(seq_stop_time - seq_start_time).count();
     std::cout << "\nResult [Feature Map]:\n";
     display_matrix(feature_map, FEATURE_MAP_COLUMNS, FEATURE_MAP_ROWS);
-    std::cout << "\nTime taken for sequential execution: " << seq_duration<<"ms";
+    std::cout << "\nTime taken for sequential execution: " << seq_duration << "ms";
 
     for (int i = 0; i < FEATURE_MAP_COLUMNS; ++i) {
         for (int j = 0; j < FEATURE_MAP_ROWS; ++j) {
@@ -186,9 +187,7 @@ void ConvolutionFilterEvaluator::main() {
             parallel_stop_time - parallel_start_time).count();
     std::cout << "\nResult [Feature Map]:\n";
     display_matrix(feature_map, FEATURE_MAP_COLUMNS, FEATURE_MAP_ROWS);
-    std::cout << "\nTime taken for parallel execution: " << parallel_duration<<"ms.";
-
-
+    std::cout << "\nTime taken for parallel execution: " << parallel_duration << "ms.";
 }
 
 /**
