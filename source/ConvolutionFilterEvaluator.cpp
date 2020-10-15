@@ -8,6 +8,7 @@
 #include "Encryptor.h"
 #include "Util.h"
 #include "DotProduct.h"
+#include <chrono>
 
 /**
  * Evaluates the convolution filter.
@@ -59,9 +60,7 @@ void ConvolutionFilterEvaluator::evaluate_convolutional_filter_parallel(helib::C
     {
         omp_set_num_threads(4);
         int threadID = omp_get_thread_num();
-        if (threadID == 0) {
-            std::cout << "\nNum threads:" << omp_get_num_threads() << "\n";
-        } else if (threadID == 1) {
+        if (threadID == 1) {
             encryptor.getEncryptedArray()->rotate(filter_t1, 6);
         } else if (threadID == 2) {
             encryptor.getEncryptedArray()->rotate(filter_t2, 12);
@@ -163,12 +162,33 @@ void ConvolutionFilterEvaluator::main() {
         feature_map[i] = new int[FEATURE_MAP_ROWS];
     }
 
-//    evaluate_convolutional_filter_seq(&ctxt_input_data, ctxt_filter, encryptor, feature_map);
+    helib::Ctxt seq_filter_copy(ctxt_filter);
 
-    evaluate_convolutional_filter_parallel(&ctxt_input_data, ctxt_filter, encryptor, feature_map);
+    auto seq_start_time = std::chrono::high_resolution_clock::now();
+    evaluate_convolutional_filter_seq(&ctxt_input_data, seq_filter_copy, encryptor, feature_map);
+    auto seq_stop_time = std::chrono::high_resolution_clock::now();
 
+    auto seq_duration = std::chrono::duration_cast<std::chrono::milliseconds>(seq_stop_time - seq_start_time).count();
     std::cout << "\nResult [Feature Map]:\n";
     display_matrix(feature_map, FEATURE_MAP_COLUMNS, FEATURE_MAP_ROWS);
+    std::cout << "\nTime taken for sequential execution: " << seq_duration<<"ms";
+
+    for (int i = 0; i < FEATURE_MAP_COLUMNS; ++i) {
+        for (int j = 0; j < FEATURE_MAP_ROWS; ++j) {
+            feature_map[i][j] = 0;
+        }
+    }
+
+    auto parallel_start_time = std::chrono::high_resolution_clock::now();
+    evaluate_convolutional_filter_parallel(&ctxt_input_data, ctxt_filter, encryptor, feature_map);
+    auto parallel_stop_time = std::chrono::high_resolution_clock::now();
+    auto parallel_duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+            parallel_stop_time - parallel_start_time).count();
+    std::cout << "\nResult [Feature Map]:\n";
+    display_matrix(feature_map, FEATURE_MAP_COLUMNS, FEATURE_MAP_ROWS);
+    std::cout << "\nTime taken for parallel execution: " << parallel_duration<<"ms.";
+
+
 }
 
 /**
