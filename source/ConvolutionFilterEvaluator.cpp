@@ -4,9 +4,11 @@
 
 #include "ConvolutionFilterEvaluator.h"
 #include <iostream>
+#include <omp.h>
 #include "Encryptor.h"
 #include "Util.h"
 #include "DotProduct.h"
+
 /**
  * Evaluates the convolution filter.
  * Given a 6x6 input_data and a 3x3 filter, the evaluation is defined as a 4x4 filter matrix where each value in the
@@ -18,28 +20,81 @@
  * @param encryptor needed for rotating the filter ciphertext.
  * @param result final values are put inside this 2d array.
  */
-static void ConvolutionFilterEvaluator::evaluate_convolutional_filter(helib::Ctxt *input_data, helib::Ctxt &filter,
-                                                               const COED::Encryptor &encryptor, int **result) {
-    int rotate_counter = 0;
+void ConvolutionFilterEvaluator::evaluate_convolutional_filter_seq(helib::Ctxt *input_data, helib::Ctxt &filter,
+                                                                   const COED::Encryptor &encryptor, int **result) {
     for (int i = 0; i < FEATURE_MAP_COLUMNS; ++i) {
         for (int j = 0; j < FEATURE_MAP_ROWS; ++j) {
             helib::Ctxt copy(*input_data);
-            std::cout << std::endl;
             DotProduct::dot_product(&copy, filter, encryptor);
             std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
             encryptor.getEncryptedArray()->decrypt(copy, *encryptor.getSecretKey(), plaintext);
             result[i][j] = plaintext[1];
-            std::cout << "Found result[" << i << "][" << j << "]=" << result[i][j];
-            rotate_counter++;
-            if (rotate_counter < 4) {
-                encryptor.getEncryptedArray()->rotate(filter, 1);
-            } else {
-                encryptor.getEncryptedArray()->rotate(filter, 3);
-                rotate_counter = 0;
+            encryptor.getEncryptedArray()->rotate(filter, 1);
+        }
+        encryptor.getEncryptedArray()->rotate(filter, 2);
+    }
+}
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "openmp-use-default-none"
+
+/**
+ * The parallel version of @code{evaluate_convolutional_filter_seq}.
+ * This function will only work properly if there are exactly 4 threads, no more, no less.
+ * The idea is to use one thread for each row of the output 4x4 resultant matrix.
+ * @param input_data the input matrix.
+ * @param filter the filter to be applied on the input matrix.
+ * @param encryptor needed for rotating the filter ciphertext.
+ * @param result final values are put inside this 2d array.
+ */
+void ConvolutionFilterEvaluator::evaluate_convolutional_filter_parallel(helib::Ctxt *input_data, helib::Ctxt &filter,
+                                                                        const COED::Encryptor &encryptor,
+                                                                        int **result) {
+    helib::Ctxt filter_t0(filter);
+    helib::Ctxt filter_t1(filter);
+    helib::Ctxt filter_t2(filter);
+    helib::Ctxt filter_t3(filter);
+
+#pragma omp parallel
+    {
+        omp_set_num_threads(4);
+        int threadID = omp_get_thread_num();
+        if (threadID == 0) {
+            std::cout << "\nNum threads:" << omp_get_num_threads() << "\n";
+        } else if (threadID == 1) {
+            encryptor.getEncryptedArray()->rotate(filter_t1, 6);
+        } else if (threadID == 2) {
+            encryptor.getEncryptedArray()->rotate(filter_t2, 12);
+        } else {
+            encryptor.getEncryptedArray()->rotate(filter_t3, 18);
+        }
+#pragma omp for
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                helib::Ctxt copy(*input_data);
+                if (threadID == 0) {
+                    DotProduct::dot_product(&copy, filter_t0, encryptor);
+                    encryptor.getEncryptedArray()->rotate(filter_t0, 1);
+                } else if (threadID == 1) {
+                    DotProduct::dot_product(&copy, filter_t1, encryptor);
+                    encryptor.getEncryptedArray()->rotate(filter_t1, 1);
+                } else if (threadID == 2) {
+                    DotProduct::dot_product(&copy, filter_t2, encryptor);
+                    encryptor.getEncryptedArray()->rotate(filter_t2, 1);
+                } else {
+                    DotProduct::dot_product(&copy, filter_t3, encryptor);
+                    encryptor.getEncryptedArray()->rotate(filter_t3, 1);
+                }
+
+                std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
+                encryptor.getEncryptedArray()->decrypt(copy, *encryptor.getSecretKey(), plaintext);
+                result[i][j] = plaintext[1];
             }
         }
     }
-}
+};
+#pragma clang diagnostic pop
+
 /**
  * Runner of the core demonstration functionality.
  * This function accepts data, converts the 2d matrices into 1d plain texts, enrypts them, then calls
@@ -47,9 +102,9 @@ static void ConvolutionFilterEvaluator::evaluate_convolutional_filter(helib::Ctx
  */
 void ConvolutionFilterEvaluator::main() {
     int plaintext_prime_modulus = 53;
-    int phiM = 7363;
+    int phiM = 2665;
     int lifting = 1;
-    int numOfBitsOfModulusChain = 256;
+    int numOfBitsOfModulusChain = 512;
     int numOfColOfKeySwitchingMatrix = 2;
 
     COED::Util::info("Starting program ...");
@@ -108,7 +163,9 @@ void ConvolutionFilterEvaluator::main() {
         feature_map[i] = new int[FEATURE_MAP_ROWS];
     }
 
-    evaluate_convolutional_filter(&ctxt_input_data, ctxt_filter, encryptor, feature_map);
+//    evaluate_convolutional_filter_seq(&ctxt_input_data, ctxt_filter, encryptor, feature_map);
+
+    evaluate_convolutional_filter_parallel(&ctxt_input_data, ctxt_filter, encryptor, feature_map);
 
     std::cout << "\nResult [Feature Map]:\n";
     display_matrix(feature_map, FEATURE_MAP_COLUMNS, FEATURE_MAP_ROWS);
