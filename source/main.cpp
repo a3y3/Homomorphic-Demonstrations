@@ -5,24 +5,39 @@
 // Modified by soham on 10/10/20.
 
 #include <iostream>
-#include "BasicExamples.h"
 #include "Calculator.h"
 #include "DotProduct.h"
+#include "MatrixMultiplier.h"
+#include "ConvolutionFilterEvaluator.h"
+#include "Encryptor.h"
+#include "Util.h"
 
 int main() {
-    std::cout << "Demonstration 1: Homomorphic Calculator" << std::endl;
-//    Calculator::run_calculator();
-    DotProduct::run_dot_product();
+    int plaintext_prime_modulus = 53;
+    int phiM = 2665;
+    int lifting = 1;
+    int numOfBitsOfModulusChain = 512;
+    int numOfColOfKeySwitchingMatrix = 2;
+    COED::Util::info("Creating encryptor ...");
 
-    //BasicExamples::determine_plaintext_slot();
+    COED::Encryptor encryptor("/tmp/sk.txt", "/tmp/pk.txt",
+                              plaintext_prime_modulus,
+                              phiM,
+                              lifting,
+                              numOfBitsOfModulusChain,
+                              numOfColOfKeySwitchingMatrix);
+    COED::Util::info("Finished creating encryptor.");
+    std::cout << "\n***** Demonstration 1: Homomorphic Calculator *****\n";
+    Calculator::run_calculator(encryptor, plaintext_prime_modulus);
 
-//    BasicExamples::decimal_arithmetic_example();
+    std::cout << "\n***** Demonstration 2: Dot Product of 2 vectors *****\n";
+    DotProduct::run_program(encryptor);
 
-    //BasicExamples::packed_binary_arithmetic_example();
+    std::cout << "\n***** Demonstration 3: Matrix Multiplier (3x3) *****\n";
+    MatrixMultiplier::main(encryptor);
 
-    //BasicExamples::packed_decimal_arithmetic_example();
-
-//    BasicExamples::packed_decimal_arithmetic_scalar_product_example();
+    std::cout << "\n***** Demonstration 4: Convolution Filter Evaluation *****\n";
+    ConvolutionFilterEvaluator::main(encryptor);
 
     return 0;
 }

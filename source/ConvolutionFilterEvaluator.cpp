@@ -100,22 +100,7 @@ void ConvolutionFilterEvaluator::evaluate_convolutional_filter_parallel(helib::C
  * This function accepts data, converts the 2d matrices into 1d plain texts, enrypts them, then calls
  * @code{evaluate_convolutional_filter()} to calculate the result.
  */
-void ConvolutionFilterEvaluator::main() {
-    int plaintext_prime_modulus = 53;
-    int phiM = 2665;
-    int lifting = 1;
-    int numOfBitsOfModulusChain = 512;
-    int numOfColOfKeySwitchingMatrix = 2;
-
-    COED::Util::info("Starting program ...");
-
-    COED::Encryptor encryptor("/tmp/sk.txt", "/tmp/pk.txt",
-                              plaintext_prime_modulus,
-                              phiM,
-                              lifting,
-                              numOfBitsOfModulusChain,
-                              numOfColOfKeySwitchingMatrix);
-    COED::Util::info("Finished creating encryptor.");
+void ConvolutionFilterEvaluator::main(const COED::Encryptor &encryptor) {
 
     int **input_data;
     input_data = new int *[INPUT_DATA_COLUMNS];

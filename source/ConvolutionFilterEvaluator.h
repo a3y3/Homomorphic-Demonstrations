@@ -15,7 +15,7 @@
 
 class ConvolutionFilterEvaluator {
 public:
-    static void main();
+    static void main(const COED::Encryptor &encryptor);
 
     static void
     evaluate_convolutional_filter_seq(helib::Ctxt *input_data, helib::Ctxt &filter, const COED::Encryptor &,
@@ -29,8 +29,6 @@ private:
     static void display_matrix(int **a, int m, int n);
 
     static void accept_inputs(int **input_data, int **filter);
-
-    static void print_vector(const std::string &msg, const std::vector<long> &vec, bool space);
 };
 
 

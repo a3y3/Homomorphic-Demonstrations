@@ -10,7 +10,7 @@
 
 class Calculator {
 public:
-    static void run_calculator();
+    static void run_calculator(const COED::Encryptor &encryptor, int plaintext_prime_modulus);
 
     static void add(helib::Ctxt *a, const helib::Ctxt& b);
 

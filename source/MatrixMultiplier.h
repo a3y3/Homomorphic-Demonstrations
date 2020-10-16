@@ -11,7 +11,7 @@
 
 class MatrixMultiplier {
 public:
-    static void main();
+    static void main(const COED::Encryptor &encryptor);
 
 private:
     static void accept_inputs(int a[][NCOLS], int b[][NROWS]);

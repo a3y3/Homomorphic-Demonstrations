@@ -14,22 +14,7 @@
  * the second matrix (for ease with dot product, think about how the elements of a matrix are multiplied), stores them
  * in arrays of ciphertext object, then calls @code{DotProduct::dot_product{}} @code{NCOLS} * @code{NROWS} times.
  */
-void MatrixMultiplier::main() {
-    int plaintext_prime_modulus = 53;
-    int phiM = 3000;
-    int lifting = 1;
-    int numOfBitsOfModulusChain = 512;
-    int numOfColOfKeySwitchingMatrix = 2;
-
-    COED::Util::info("Starting program ...");
-
-    COED::Encryptor encryptor("/tmp/sk.txt", "/tmp/pk.txt",
-                              plaintext_prime_modulus,
-                              phiM,
-                              lifting,
-                              numOfBitsOfModulusChain,
-                              numOfColOfKeySwitchingMatrix);
-
+void MatrixMultiplier::main(const COED::Encryptor &encryptor) {
     int a[NCOLS][NROWS];
     int b[NCOLS][NROWS];
     MatrixMultiplier::accept_inputs(a, b);

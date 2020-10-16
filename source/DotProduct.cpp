@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include "DotProduct.h"
-#include "Util.h"
 #include "Encryptor.h"
 
 #define MAX_VECTOR_SIZE 5
@@ -14,22 +13,7 @@
  * This function creates 2 ciphertexts, calculates their product, then uses helib's totalSums operation to calculate
  * the sum.
  */
-void DotProduct::run_program() {
-    int plaintext_prime_modulus = 53;
-    int phiM = 3000;
-    int lifting = 1;
-    int numOfBitsOfModulusChain = 512;
-    int numOfColOfKeySwitchingMatrix = 2;
-
-    COED::Util::info("Starting program ...");
-
-    COED::Encryptor encryptor("/tmp/sk.txt", "/tmp/pk.txt",
-                              plaintext_prime_modulus,
-                              phiM,
-                              lifting,
-                              numOfBitsOfModulusChain,
-                              numOfColOfKeySwitchingMatrix);
-
+void DotProduct::run_program(const COED::Encryptor &encryptor) {
     int a[MAX_VECTOR_SIZE];
     int b[MAX_VECTOR_SIZE];
     accept_inputs(a, b);

@@ -49,24 +49,11 @@ void Calculator::divide(helib::Ctxt *a, const helib::Ctxt &b, int plaintext_prim
 /**
  * Driver function. Runs the calculator in a loop until the user chooses to exit.
 **/
-void Calculator::run_calculator() {
+void Calculator::run_calculator(const COED::Encryptor &encryptor, int plaintext_prime_modulus) {
     int a, b;
     char op;
     char continue_or_exit;
-    int plaintext_prime_modulus = 53;
-    int phiM = 2000;
-    int lifting = 1;
-    int numOfBitsOfModulusChain = 512;
-    int numOfColOfKeySwitchingMatrix = 2;
 
-    COED::Util::info("Starting calculator ...");
-
-    COED::Encryptor encryptor("/tmp/sk.txt", "/tmp/pk.txt",
-                              plaintext_prime_modulus,
-                              phiM,
-                              lifting,
-                              numOfBitsOfModulusChain,
-                              numOfColOfKeySwitchingMatrix);
     // a and b are integers, we need to convert them into "plaintext" objects.
     helib::Ptxt<helib::BGV> ptxt_a(*(encryptor.getContext()));
     helib::Ptxt<helib::BGV> ptxt_b(*(encryptor.getContext()));
