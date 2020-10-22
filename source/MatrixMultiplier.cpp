@@ -42,8 +42,8 @@ void MatrixMultiplier::main(const COED::Encryptor &encryptor) {
 
     for (int i = 0; i < NCOLS; ++i) {
         for (int j = 0; j < NROWS; ++j) {
-            ptxt_a[i][j + 1] = a[i][j];
-            ptxt_b[i][j + 1] = b[i][j];
+            ptxt_a[i][j] = a[i][j];
+            ptxt_b[i][j] = b[i][j];
         }
     }
 
@@ -54,8 +54,21 @@ void MatrixMultiplier::main(const COED::Encryptor &encryptor) {
 
     int result[NCOLS][NROWS];
 
+    helib::Ptxt<helib::BGV> ptxt_result[NCOLS];
+    initialize_plaintexts(ptxt_result, NCOLS, encryptor);
+    helib::Ctxt ctxt_result[3]{helib::Ctxt(*(encryptor.getPublicKey())), helib::Ctxt(*(encryptor.getPublicKey())),
+                               helib::Ctxt(*(encryptor.getPublicKey()))};
+
     std::cout << "\nCalculating result...\n";
-    matrix_multiplication(ctxt_a, ctxt_b, result, encryptor);
+    matrix_multiplication(ctxt_a, ctxt_b, ctxt_result, encryptor);
+
+    for (int i = 0; i < NCOLS; ++i) {
+        std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
+        encryptor.getEncryptedArray()->decrypt(ctxt_result[i], *encryptor.getSecretKey(), plaintext);
+        for (int j = 0; j < NROWS; ++j) {
+            result[i][j] = plaintext[j];
+        }
+    }
 
     COED::Util::info("Result:");
     display_matrix(result);
@@ -65,25 +78,17 @@ void MatrixMultiplier::main(const COED::Encryptor &encryptor) {
  * Calculates matrix multiplication as a dot product of n vectors.
  * @param ctxt_a First array of vector.
  * @param ctxt_b Second array of vector. Note that this is the transposed second matrix.
- * @param result The m*n result matrix.
+ * @param ctxt_result The result is stored in this ciphertext array (each index contains one row of the result)
  * @param encryptor needed to pass to @code{DotProduct::dot_product()}.
  */
-void MatrixMultiplier::matrix_multiplication(helib::Ctxt ctxt_a[], helib::Ctxt ctxt_b[], int result[][NROWS],
+void MatrixMultiplier::matrix_multiplication(helib::Ctxt ctxt_a[], helib::Ctxt ctxt_b[], helib::Ctxt ctxt_result[],
                                              const COED::Encryptor &encryptor) {
     for (int i = 0; i < NCOLS; ++i) {
         for (int j = 0; j < NROWS; ++j) {
-            /*
-             * Now, result[i][j]=dot_product(ctxt_a[i],ctxt_b[j]). However, we need to create a copy of ctxt_a first
-             * as homomorphic dot product stores the result in the first vector (ctxt_a) and we are going to need
-             * the vector again and again.
-             */
             helib::Ctxt ctxt_a_copy(ctxt_a[i]);
-            DotProduct::dot_product(&ctxt_a_copy, ctxt_b[j], encryptor);
-
-            //Now, all elements of ctxt_a_copy are basically result[i][j]. Select any one of them (by decrypting it).
-            std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
-            encryptor.getEncryptedArray()->decrypt(ctxt_a_copy, *encryptor.getSecretKey(), plaintext);
-            result[i][j] = plaintext[1];
+            ctxt_a_copy = DotProduct::dot_product(ctxt_a_copy, ctxt_b[j], encryptor);
+            encryptor.getEncryptedArray()->rotate(ctxt_a_copy, j);
+            ctxt_result[i].addCtxt(ctxt_a_copy);
         }
     }
 }

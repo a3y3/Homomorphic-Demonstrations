@@ -19,11 +19,11 @@ public:
 
     static void
     evaluate_convolutional_filter_seq(helib::Ctxt *input_data, helib::Ctxt &filter, const COED::Encryptor &,
-                                      int **result);
+                                      helib::Ctxt *result_ctxt);
 
     static void
     evaluate_convolutional_filter_parallel(helib::Ctxt *input_data, helib::Ctxt &filter, const COED::Encryptor &,
-                                           int **result);
+                                           helib::Ctxt *result_ctxt);
 
 private:
     static void display_matrix(int **a, int m, int n);

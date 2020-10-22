@@ -34,12 +34,12 @@ void DotProduct::run_program(const COED::Encryptor &encryptor) {
     encryptor.getPublicKey()->Encrypt(ctxt_a, ptxt_a);
     encryptor.getPublicKey()->Encrypt(ctxt_b, ptxt_b);
 
-    DotProduct::dot_product(&ctxt_a, ctxt_b, encryptor);
+    helib::Ctxt result = DotProduct::dot_product(ctxt_a, ctxt_b, encryptor);
 
     //Decrypt and show result
     std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
-    encryptor.getEncryptedArray()->decrypt(ctxt_a, *encryptor.getSecretKey(), plaintext);
-    std::cout << "Dot Product: " << plaintext[1] << std::endl;
+    encryptor.getEncryptedArray()->decrypt(result, *encryptor.getSecretKey(), plaintext);
+    std::cout << "Dot Product: " << plaintext[0] << std::endl;
 }
 
 /**
@@ -59,9 +59,18 @@ void DotProduct::accept_inputs(int *a, int *b) {
     }
 }
 
-void DotProduct::dot_product(helib::Ctxt *a, helib::Ctxt &b, const COED::Encryptor& encryptor) {
+helib::Ctxt DotProduct::dot_product(const helib::Ctxt& a, const helib::Ctxt &b, const COED::Encryptor& encryptor) {
     //Multiply and find sum
-    a->multiplyBy(b);
-    helib::totalSums(*encryptor.getEncryptedArray(), *a);
+    helib::Ctxt copy(a);
+    copy.multiplyBy(b);
+    helib::totalSums(*encryptor.getEncryptedArray(), copy);
+
+    helib::Ptxt<helib::BGV> ptxt_mask(*(encryptor.getContext()));
+    helib::Ctxt ctxt_mask(*(encryptor.getPublicKey()));
+    ptxt_mask[0] = 1;
+    encryptor.getPublicKey()->Encrypt(ctxt_mask, ptxt_mask);
+
+    copy.multiplyBy(ctxt_mask);
+    return copy;
 }
 

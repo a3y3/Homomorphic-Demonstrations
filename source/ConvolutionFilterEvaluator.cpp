@@ -19,17 +19,19 @@
  * @param input_data the input matrix.
  * @param filter the filter to be applied on the input matrix.
  * @param encryptor needed for rotating the filter ciphertext.
- * @param result final values are put inside this 2d array.
+ * @param result_ctxt final values are put inside this ciphertext.
  */
 void ConvolutionFilterEvaluator::evaluate_convolutional_filter_seq(helib::Ctxt *input_data, helib::Ctxt &filter,
-                                                                   const COED::Encryptor &encryptor, int **result) {
+                                                                   const COED::Encryptor &encryptor,
+                                                                   helib::Ctxt *result_ctxt) {
     for (int i = 0; i < FEATURE_MAP_COLUMNS; ++i) {
         for (int j = 0; j < FEATURE_MAP_ROWS; ++j) {
             helib::Ctxt copy(*input_data);
-            DotProduct::dot_product(&copy, filter, encryptor);
-            std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
-            encryptor.getEncryptedArray()->decrypt(copy, *encryptor.getSecretKey(), plaintext);
-            result[i][j] = plaintext[1];
+            copy = DotProduct::dot_product(copy, filter, encryptor);
+
+            encryptor.getEncryptedArray()->rotate(copy, i * FEATURE_MAP_COLUMNS + j);
+            result_ctxt->addCtxt(copy);
+
             encryptor.getEncryptedArray()->rotate(filter, 1);
         }
         encryptor.getEncryptedArray()->rotate(filter, 2);
@@ -46,11 +48,11 @@ void ConvolutionFilterEvaluator::evaluate_convolutional_filter_seq(helib::Ctxt *
  * @param input_data the input matrix.
  * @param filter the filter to be applied on the input matrix.
  * @param encryptor needed for rotating the filter ciphertext.
- * @param result final values are put inside this 2d array.
+ * @param result_ctxt final values are put inside this ciphertext.
  */
 void ConvolutionFilterEvaluator::evaluate_convolutional_filter_parallel(helib::Ctxt *input_data, helib::Ctxt &filter,
                                                                         const COED::Encryptor &encryptor,
-                                                                        int **result) {
+                                                                        helib::Ctxt *result_ctxt) {
     helib::Ctxt filter_t0(filter);
     helib::Ctxt filter_t1(filter);
     helib::Ctxt filter_t2(filter);
@@ -72,22 +74,24 @@ void ConvolutionFilterEvaluator::evaluate_convolutional_filter_parallel(helib::C
             for (int j = 0; j < 4; ++j) {
                 helib::Ctxt copy(*input_data);
                 if (threadID == 0) {
-                    DotProduct::dot_product(&copy, filter_t0, encryptor);
+                    copy = DotProduct::dot_product(copy, filter_t0, encryptor);
                     encryptor.getEncryptedArray()->rotate(filter_t0, 1);
                 } else if (threadID == 1) {
-                    DotProduct::dot_product(&copy, filter_t1, encryptor);
+                    copy = DotProduct::dot_product(copy, filter_t1, encryptor);
                     encryptor.getEncryptedArray()->rotate(filter_t1, 1);
                 } else if (threadID == 2) {
-                    DotProduct::dot_product(&copy, filter_t2, encryptor);
+                    copy = DotProduct::dot_product(copy, filter_t2, encryptor);
                     encryptor.getEncryptedArray()->rotate(filter_t2, 1);
-                } else {
-                    DotProduct::dot_product(&copy, filter_t3, encryptor);
+                } else if (threadID == 3) {
+                    copy = DotProduct::dot_product(copy, filter_t3, encryptor);
                     encryptor.getEncryptedArray()->rotate(filter_t3, 1);
                 }
 
-                std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
-                encryptor.getEncryptedArray()->decrypt(copy, *encryptor.getSecretKey(), plaintext);
-                result[i][j] = plaintext[1];
+                encryptor.getEncryptedArray()->rotate(copy, i * FEATURE_MAP_COLUMNS + j);
+                result_ctxt->addCtxt(copy);
+//                std::vector<long> plaintext(encryptor.getEncryptedArray()->size());
+//                encryptor.getEncryptedArray()->decrypt(copy, *encryptor.getSecretKey(), plaintext);
+//                result[i][j] = plaintext[1];
             }
         }
     }
@@ -120,9 +124,12 @@ void ConvolutionFilterEvaluator::main(const COED::Encryptor &encryptor) {
 
     helib::Ptxt<helib::BGV> ptxt_input_data(*(encryptor.getContext()));
     helib::Ptxt<helib::BGV> ptxt_filter(*(encryptor.getContext()));
+    helib::Ptxt<helib::BGV> ptxt_result(*(encryptor.getContext()));
 
     helib::Ctxt ctxt_input_data(*(encryptor.getPublicKey()));
     helib::Ctxt ctxt_filter(*(encryptor.getPublicKey()));
+    helib::Ctxt ctxt_result_seq(*(encryptor.getPublicKey()));
+    helib::Ctxt ctxt_result_parallel(*(encryptor.getPublicKey()));
 
     for (int i = 0; i < INPUT_DATA_COLUMNS; ++i) {
         for (int j = 0; j < INPUT_DATA_COLUMNS; ++j) {
@@ -151,8 +158,16 @@ void ConvolutionFilterEvaluator::main(const COED::Encryptor &encryptor) {
     helib::Ctxt seq_filter_copy(ctxt_filter);
 
     auto seq_start_time = std::chrono::high_resolution_clock::now();
-    evaluate_convolutional_filter_seq(&ctxt_input_data, seq_filter_copy, encryptor, feature_map);
+    evaluate_convolutional_filter_seq(&ctxt_input_data, seq_filter_copy, encryptor, &ctxt_result_seq);
     auto seq_stop_time = std::chrono::high_resolution_clock::now();
+
+    std::vector<long> plaintext_feature_map(encryptor.getEncryptedArray()->size());
+    encryptor.getEncryptedArray()->decrypt(ctxt_result_seq, *encryptor.getSecretKey(), plaintext_feature_map);
+    for (int i = 0; i < FEATURE_MAP_COLUMNS; ++i) {
+        for (int j = 0; j < FEATURE_MAP_ROWS; ++j) {
+            feature_map[i][j] = plaintext_feature_map[i * FEATURE_MAP_COLUMNS + j];
+        }
+    }
 
     auto seq_duration = std::chrono::duration_cast<std::chrono::milliseconds>(seq_stop_time - seq_start_time).count();
     std::cout << "\nResult [Feature Map]:\n";
@@ -165,11 +180,21 @@ void ConvolutionFilterEvaluator::main(const COED::Encryptor &encryptor) {
         }
     }
 
+
     auto parallel_start_time = std::chrono::high_resolution_clock::now();
-    evaluate_convolutional_filter_parallel(&ctxt_input_data, ctxt_filter, encryptor, feature_map);
+    evaluate_convolutional_filter_parallel(&ctxt_input_data, ctxt_filter, encryptor, &ctxt_result_parallel);
     auto parallel_stop_time = std::chrono::high_resolution_clock::now();
     auto parallel_duration = std::chrono::duration_cast<std::chrono::milliseconds>(
             parallel_stop_time - parallel_start_time).count();
+
+    std::vector<long> plaintext_feature_map_parallel(encryptor.getEncryptedArray()->size());
+    encryptor.getEncryptedArray()->decrypt(ctxt_result_parallel, *encryptor.getSecretKey(),
+                                           plaintext_feature_map_parallel);
+    for (int i = 0; i < FEATURE_MAP_COLUMNS; ++i) {
+        for (int j = 0; j < FEATURE_MAP_ROWS; ++j) {
+            feature_map[i][j] = plaintext_feature_map_parallel[i * FEATURE_MAP_COLUMNS + j];
+        }
+    }
     std::cout << "\nResult [Feature Map]:\n";
     display_matrix(feature_map, FEATURE_MAP_COLUMNS, FEATURE_MAP_ROWS);
     std::cout << "\nTime taken for parallel execution: " << parallel_duration << "ms.";

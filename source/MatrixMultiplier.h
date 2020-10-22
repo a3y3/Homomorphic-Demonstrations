@@ -24,7 +24,7 @@ private:
 
     static void initialize_plaintexts(helib::Ptxt<helib::BGV> ptxt[], int count, const COED::Encryptor &encryptor);
 
-    static void matrix_multiplication(helib::Ctxt ctxt_a[], helib::Ctxt ctxt_b[], int result[][NROWS], const COED::Encryptor& encryptor);
+    static void matrix_multiplication(helib::Ctxt ctxt_a[], helib::Ctxt ctxt_b[], helib::Ctxt ctxt_result[], const COED::Encryptor& encryptor);
 };
 
 

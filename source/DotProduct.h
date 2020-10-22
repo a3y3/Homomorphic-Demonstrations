@@ -10,7 +10,7 @@
 class DotProduct {
 public:
     static void run_program(const COED::Encryptor &encryptor);
-    static void dot_product(helib::Ctxt *a, helib::Ctxt& b, const COED::Encryptor&);
+    static helib::Ctxt dot_product(const helib::Ctxt& a, const helib::Ctxt &b, const COED::Encryptor& encryptor);
 private:
     static void accept_inputs(int *a, int *b);
 };
